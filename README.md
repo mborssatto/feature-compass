@@ -22,22 +22,44 @@ Features get named one thing in the ticket, another in the PR, and something els
 | **Protect** | During work | Ensure shipped features aren't broken or silently removed by new changes |
 | **Communicate** | After work | Generate PR description, standup update, stakeholder message — consistent naming throughout |
 
-## Structure
+## File set
+
+Two compass files at the project root, plus generated comms artifacts in a
+`feature-compass/` folder:
 
 ```
-FEATURE-COMPASS.md                           ← the registry (project root)
+<your-project>/
+├── FEATURE-COMPASS.md          ← shipped registry (append-only)
+├── FEATURE-COMPASS.draft.md    ← working draft (clarifying / building)
+└── feature-compass/
+    └── <feature-slug>/
+        ├── pr.md
+        ├── standup.md
+        ├── stakeholder.md
+        └── launch.md
+```
+
+The skill itself lives at:
+
+```
 .claude/skills/feature-compass/
-└── SKILL.md                                 ← the skill
+├── SKILL.md                    ← the skill
+├── schema.yaml                 ← formal artifact schema
+└── comms/                      ← tone-and-shape templates per audience
+    ├── pr.md
+    ├── standup.md
+    ├── stakeholder.md
+    └── launch.md
 ```
 
 ## Installation
 
-This skill ships three files: `SKILL.md` (the skill), `FEATURE-COMPASS.md`
-(the registry), and this README.
-
 **Important:** Claude Code uses two different `.claude` folders:
-- **`~/.claude/`** in your home directory — Claude Code's global config. Personal skills go here. Claude Code created this folder when you first installed it.
-- **`.claude/`** inside a project repo — for project-specific skills shared with the team via git.
+- **`~/.claude/`** in your home directory — Claude Code's global config.
+  Personal skills go here. Claude Code created this folder when you first
+  installed it.
+- **`.claude/`** inside a project repo — for project-specific skills shared
+  with the team via git.
 
 ### Personal install (all projects — good for testing)
 
@@ -46,30 +68,35 @@ This skill ships three files: `SKILL.md` (the skill), `FEATURE-COMPASS.md`
 cd ~/Downloads/feature-compass
 ```
 
-**Step 2.** Copy the skill into Claude Code's global skills folder (in your home directory):
+**Step 2.** Copy the skill and supporting files into Claude Code's global
+skills folder:
 ```bash
-mkdir -p ~/.claude/skills/feature-compass
-cp SKILL.md ~/.claude/skills/feature-compass/SKILL.md
+mkdir -p ~/.claude/skills/feature-compass/comms
+cp SKILL.md schema.yaml ~/.claude/skills/feature-compass/
+cp comms/*.md ~/.claude/skills/feature-compass/comms/
 ```
 
-**Step 3.** Copy the registry into the project you want to track:
+**Step 3.** Copy the registry + working-draft files into the project you
+want to track:
 ```bash
-cp FEATURE-COMPASS.md ~/dev/your-project/FEATURE-COMPASS.md
+cp FEATURE-COMPASS.md FEATURE-COMPASS.draft.md ~/dev/your-project/
 ```
 
 That's it. The skill is now active in every Claude Code session.
-`FEATURE-COMPASS.md` lives in your project root so it tracks that project's features.
 
 ### Project install (shared with the team)
 
 When you're ready to share with the team, from your project root:
 
 ```bash
-mkdir -p .claude/skills/feature-compass
-cp ~/.claude/skills/feature-compass/SKILL.md .claude/skills/feature-compass/SKILL.md
+mkdir -p .claude/skills/feature-compass/comms
+cp ~/.claude/skills/feature-compass/SKILL.md .claude/skills/feature-compass/
+cp ~/.claude/skills/feature-compass/schema.yaml .claude/skills/feature-compass/
+cp ~/.claude/skills/feature-compass/comms/*.md .claude/skills/feature-compass/comms/
 ```
 
-Commit `.claude/skills/` and `FEATURE-COMPASS.md` to git.
+Commit `.claude/skills/`, `FEATURE-COMPASS.md`, and `FEATURE-COMPASS.draft.md`
+to git.
 
 ## Usage
 
@@ -77,18 +104,34 @@ Commit `.claude/skills/` and `FEATURE-COMPASS.md` to git.
 ```
 > /feature-compass add dark mode to the settings page
 ```
-Claude clarifies the goal, proposes a name and one-liner, defines acceptance criteria, and adds it to FEATURE-COMPASS.md.
+The skill clarifies the goal, proposes a name and one-liner, defines
+acceptance criteria, and — only after you confirm — appends it to
+`FEATURE-COMPASS.draft.md`.
+
+### Triaging a messy paste
+```
+> /feature-compass <paste a list of findings, needs, or asks>
+```
+The skill decomposes the input into a 5-column table, runs a triage check,
+and offers a cycle-1 pick. Only the picked feature gets fully clarified;
+the rest stay in chat as backlog.
 
 ### During implementation
-Work normally. The skill auto-activates — it reads FEATURE-COMPASS.md, checks alignment with stated goals, and flags drift. It also scans for impact on shipped features.
+Work normally. The skill auto-activates — re-reads both compass files,
+names which AC each change advances, and flags drift. Touches code used by
+a shipped feature? It picks a safeguard from the taxonomy.
 
-### After implementation
+### Shipping a feature
 ```
 > /feature-compass communicate Dark Mode Settings
 ```
-Claude generates a PR description, standup update, and stakeholder message — all using the canonical name from planning.
+The skill generates PR / standup / stakeholder / launch artifacts under
+`feature-compass/dark-mode-settings/`, moves the entry from the draft to
+the registry, and prompts about backlog candidates now unblocked.
 
----
-
-Built by [Mariana Borssatto](https://github.com/mborssatto).
-Contribute: https://github.com/mborssatto/feature-compass
+### Periodic health check
+```
+> /feature-compass audit
+```
+Surfaces stale `clarifying` entries, vague criteria, empty out-of-scope
+sections, and abandoned `building` entries. Read-only.

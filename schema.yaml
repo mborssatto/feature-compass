@@ -1,0 +1,183 @@
+# Feature Compass — artifact schema (v2)
+#
+# Defines the shape of every artifact the skill produces: working-draft entry,
+# registry entry, triage/summary table, and comms artifacts.
+#
+# Modeled on https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/schema.yaml
+#
+# Note: v2 does not enforce this schema programmatically. It exists to keep
+# every surface (chat tables, MD files, future UI) rendering consistently.
+
+$schema: "https://json-schema.org/draft/2020-12/schema"
+$id: "https://github.com/mborssatto/feature-compass/schema.yaml"
+title: "Feature Compass Artifacts"
+version: "2.0"
+
+definitions:
+
+  # ----- Common -----
+
+  status:
+    description: Lifecycle state of an entry. Working draft holds clarifying/building. Registry holds shipped only.
+    type: string
+    enum: [clarifying, building, shipped]
+
+  theme:
+    description: The mode/journey this feature lives under. Project-defined.
+    type: string
+
+  canonicalName:
+    description: 2-4 word name used everywhere — chat, code, comms, registry. Never invent a second name.
+    type: string
+    minLength: 2
+    maxLength: 60
+
+  oneLiner:
+    description: One sentence describing the outcome, not the implementation.
+    type: string
+    minLength: 8
+    maxLength: 240
+
+  acceptanceCriterion:
+    description: Concrete, testable condition. Verb-led. No "feels modern" or "is performant" vibe-checks.
+    type: object
+    required: [id, text]
+    properties:
+      id:
+        type: string
+        pattern: "^[0-9]+\\.[0-9]+$"
+        description: "Stable id like 1.1, 1.2 — used for change-naming in Guard."
+      text:
+        type: string
+
+  # ----- Working draft entry -----
+
+  workingDraftEntry:
+    description: Lives in FEATURE-COMPASS.draft.md. Belongs to a triage cycle or current implementation.
+    type: object
+    required: [number, theme, name, oneLiner, status, criteria]
+    properties:
+      number: { type: integer, minimum: 1 }
+      theme: { $ref: "#/definitions/theme" }
+      name: { $ref: "#/definitions/canonicalName" }
+      oneLiner: { $ref: "#/definitions/oneLiner" }
+      status:
+        $ref: "#/definitions/status"
+        description: Working-draft entries are clarifying or building. Never shipped.
+        enum: [clarifying, building]
+      criteria:
+        type: array
+        items: { $ref: "#/definitions/acceptanceCriterion" }
+        minItems: 1
+      outOfScope:
+        type: array
+        items: { type: string }
+      sourceInput:
+        description: Where this candidate came from (paste reference, ticket, conversation).
+        type: string
+
+  # ----- Registry entry (shipped) -----
+
+  registryEntry:
+    description: Lives in FEATURE-COMPASS.md. Append-only. Status implicitly shipped.
+    type: object
+    required: [number, theme, name, oneLiner, criteria, shippedDate]
+    properties:
+      number: { type: integer, minimum: 1 }
+      theme: { $ref: "#/definitions/theme" }
+      name: { $ref: "#/definitions/canonicalName" }
+      oneLiner: { $ref: "#/definitions/oneLiner" }
+      criteria:
+        type: array
+        items: { $ref: "#/definitions/acceptanceCriterion" }
+        minItems: 1
+      outOfScope:
+        type: array
+        items: { type: string }
+      shippedDate:
+        type: string
+        format: date
+      implementationNotes:
+        type: string
+        description: Optional. Caveats, follow-ups, links to PRs.
+
+  # ----- Tables -----
+
+  summaryTable:
+    description: Top-of-document overview. Same column model in triage, working draft, and registry.
+    type: object
+    required: [columns, rows]
+    properties:
+      columns:
+        type: array
+        items: { type: string }
+        # Working draft / triage:
+        # ["#", "Theme", "Feature", "One-line description", "Main acceptance criteria"]
+        # Registry:
+        # ["#", "Theme", "Feature", "One-line description", "Shipped"]
+      rows:
+        type: array
+        items:
+          type: array
+          items: { type: string }
+
+  # ----- Lifecycle transitions -----
+
+  transitions:
+    description: Rules for moving an entry between states.
+    type: object
+    properties:
+      clarifyingToBuilding:
+        description: Triggered when implementation begins. No new fields required.
+      buildingToShipped:
+        description: Triggered on Communicate. Moves entry from FEATURE-COMPASS.draft.md to FEATURE-COMPASS.md and sets shippedDate.
+        required: [shippedDate]
+
+  # ----- Comms artifacts -----
+
+  prDescription:
+    description: GitHub PR description. Direct, scannable, technical audience.
+    type: object
+    required: [name, oneLiner, whatChanged, howToVerify]
+    properties:
+      name: { $ref: "#/definitions/canonicalName" }
+      oneLiner: { $ref: "#/definitions/oneLiner" }
+      whatChanged:
+        type: array
+        items: { type: string }
+      why:
+        type: string
+      howToVerify:
+        type: array
+        items: { type: string }
+      outOfScope:
+        type: array
+        items: { type: string }
+
+  standupUpdate:
+    description: One-screen update for daily standup. Three lines max.
+    type: object
+    required: [shipped, next]
+    properties:
+      shipped: { type: string }
+      next: { type: string }
+      blockers: { type: string }
+
+  stakeholderUpdate:
+    description: Internal non-technical audience (PM, exec). 2-3 paragraphs. Plain language.
+    type: object
+    required: [name, oneLiner, body]
+    properties:
+      name: { $ref: "#/definitions/canonicalName" }
+      oneLiner: { $ref: "#/definitions/oneLiner" }
+      body: { type: string }
+
+  launchComms:
+    description: End-user / customer launch note. Benefit-led, calls to action.
+    type: object
+    required: [name, oneLiner, body]
+    properties:
+      name: { $ref: "#/definitions/canonicalName" }
+      oneLiner: { $ref: "#/definitions/oneLiner" }
+      body: { type: string }
+      cta: { type: string }

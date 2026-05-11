@@ -1,53 +1,40 @@
-# Feature Compass
+# Feature Compass — shipped registry
 
-> Living registry of product features and their intended outcomes.
-> Organized by user journey. Each feature has a canonical name, one-liner
-> outcome, acceptance criteria, and status.
+> Append-only ledger of shipped reality. Each row represents a commitment to
+> users. To move an entry here, ship it (use the Communicate mode of the
+> `feature-compass` skill).
 >
-> This file is the team's shared vocabulary — referenced during planning,
-> implementation, and communication. Git-tracked, human-readable, always current.
->
-> Managed by the `feature-compass` skill: `/feature-compass`
+> In-flight work (`clarifying`, `building`) lives in `FEATURE-COMPASS.draft.md`.
 >
 > Built by [Mariana Borssatto](https://github.com/mborssatto) · [Contribute](https://github.com/mborssatto/feature-compass)
 
-**Status flow:** `clarifying` → `building` → `shipped`
+## Summary
+
+| # | Theme | Feature | One-line description | Shipped |
+|---|---|---|---|---|
+
+<!-- Shipped features go below, in the same order as the table above. -->
+<!-- One section per feature: name, one-liner, criteria table, out-of-scope. -->
 
 ---
 
-<!-- DELETE everything below this line and start adding your own features. -->
-<!-- The sections below are examples showing the expected format.          -->
+<!-- DELETE this example section once you have real shipped features. -->
 
-## Onboarding Flow
+## 1. Never Blank Screens
 
-### Welcome Screen Personalization
-- **One-liner:** New users see content tailored to their stated goals within 3 seconds of signup.
-- **Status:** shipped
-- **Acceptance criteria:**
-  - [x] User selects goals during signup
-  - [x] Welcome screen renders personalized content based on selections
-  - [x] Fallback to generic content if no goals selected
-  - [x] Page loads in under 3 seconds
-- **Out of scope:** ML-based recommendations, A/B testing
+**Theme:** Reliability
+**One-liner:** When an API call fails transiently, the user sees a retry state instead of an empty page.
+**Shipped:** 2026-04-01
 
-### Email Verification
-- **One-liner:** Users confirm their email before accessing paid features, reducing fake signups by 80%.
-- **Status:** building
-- **Acceptance criteria:**
-  - [x] Verification email sent on signup
-  - [ ] Clicking link confirms the account
-  - [ ] Unverified users see a reminder banner
-  - [ ] Expired links show a resend option
-- **Out of scope:** SMS verification, OAuth-only flows
+### Acceptance criteria
 
-## Payment Experience
+| #   | Criterion |
+|-----|-----------|
+| 1.1 | Failed API calls retry up to 3 times on 5xx and timeout errors |
+| 1.2 | No retry on 4xx (permanent) errors |
+| 1.3 | User sees a "retrying" state, not a blank screen |
+| 1.4 | Retry history is visible in the admin dashboard |
 
-### Smart Retry Logic
-- **One-liner:** Failed payments automatically retry with exponential backoff, so users don't lose access due to transient card failures.
-- **Status:** clarifying
-- **Acceptance criteria:**
-  - [ ] Retry up to 3 times on transient failures (5xx, timeout)
-  - [ ] No retry on permanent failures (4xx)
-  - [ ] User sees "retrying" state, not an error
-  - [ ] Admin dashboard shows retry history
-- **Out of scope:** Alternative payment methods, offline mode
+### Out of scope
+- Alternative payment methods
+- Offline mode
