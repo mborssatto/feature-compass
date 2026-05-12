@@ -1,4 +1,4 @@
-# Feature Compass
+# 🧭 Feature Compass
 
 A Claude Code skill that creates alignment around goals and outcomes — before, during, and after development. Names features, guards scope, ships with clarity.
 
