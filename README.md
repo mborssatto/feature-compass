@@ -1,6 +1,6 @@
 # Feature Compass
 
-Points every decision back to the stated goal. Names features, guards scope, ships with clarity.
+A Claude Code skill that creates alignment around goals and outcomes — before, during, and after development. Names features, guards scope, ships with clarity.
 
 ## The Problem
 
